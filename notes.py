@@ -1,4 +1,5 @@
 """notes:
+Victron mppt solar regulator messages
 PID 0xA04C        -Product ID
 
 FW  130           -Firmware version
