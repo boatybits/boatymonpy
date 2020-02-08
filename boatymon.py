@@ -11,7 +11,6 @@ import network
 import onewire, ds18x20
 from machine import UART
 
-
 class sensors:
     import utime
     ssid1 = "openplotter"
