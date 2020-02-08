@@ -1,4 +1,12 @@
 """notes:
+To Do:
+* Replace esp with SMD eps32.
+        Headers for TX/RX - resister network to take 5v down to 3.3v for RX
+* 2 x INA219
+* BE280
+* 
+
+-------------------------------
 Victron mppt solar regulator messages
 PID 0xA04C        -Product ID
 
