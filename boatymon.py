@@ -77,7 +77,7 @@ class sensors:
     
     #ads1115 set up, , 0x48 default, 0x4a->ADDR pin to SDA
     try:
-        addr = 0x48
+        addr = 0x4a
         gain = 0
         ads1115A = ads1x15.ADS1115(i2c, addr, gain)
         print("ADS1115 started")
@@ -127,23 +127,26 @@ class sensors:
         self.led.value(not self.led.value())
          
     def getVoltage(self):
-#         value=[0,1,2,3]
-#         voltage = [0,1,2,3]
-#         calibration = 1
-#         for i in range(4): # 0 - 3
-# #           def read(self, rate=4, channel1=0, channel2=None):, line 156 ads1x15.py
-        try:
-            value = self.ads1115A.read(4,0,1)
-            voltage = self.ads1115A.raw_to_v(value)
-#                if i == 1:
+        value=[0,1,2,3]
+        voltage = [0,1,2,3]
+        calibration = 1
+        for i in range(4): # 0 - 3
+#           def read(self, rate=4, channel1=0, channel2=None):, line 156 ads1x15.py
+            try:
+                value[i] = self.ads1115A.read(4,i)
+                voltage[i] = self.ads1115A.raw_to_v(value[i])
+#                 if i == 1:
 #                     print("Voltage ", i, " = ", voltage[i] * 0.51368)
-     
-               
-            self.insertIntoSigKdata("electrical.ads1115-0/1" , voltage)
-            calibration = 1
-        except Exception as e:
-            pass
-#                print('ADS1115 read failed, Error=',e)         
+                if i == 2:
+                    calibration = 6.09
+                elif i == 3:
+                    calibration = 6.11
+#                 print("Voltage ", i, " = ", voltage[i])
+                self.insertIntoSigKdata("electrical.ads1115-1." + str(i), voltage[i] * calibration)
+                calibration = 1
+            except Exception as e:
+                pass
+#                 print('ADS1115 read failed, Error=',e)         
 
     def getPressure(self):
         self.checkConnection()
