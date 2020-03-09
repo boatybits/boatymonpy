@@ -15,8 +15,8 @@ class sensors:
     import utime
     ssid1 = "openplotter"
     password1 = "12345678"
-    ssid2 = "padz"
-    password2 = "12348765"
+    ssid2 = "****"
+    password2 = "****"
     led = Pin(2, Pin.OUT)  #set internal pin to LED as an output
     nmea_1_in = Pin(13, Pin.IN)
     
