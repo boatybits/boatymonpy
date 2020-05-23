@@ -1,6 +1,6 @@
 from machine import Pin, I2C
 import bme280_float   #https://github.com/robert-hh/BME280
-import bme680
+# import bme680
 #---from i2c import I2CAdapter
 #---from bme680.i2c import I2CAdapter 
 import ads1x15        #https://github.com/robert-hh/ads1x15
@@ -13,7 +13,6 @@ import machine
 import network
 import onewire, ds18x20
 
-global isSensorNotRunning
 
 #______________________________________________________________________________________
 #______________________________________________________________________________________

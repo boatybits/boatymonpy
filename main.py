@@ -8,10 +8,8 @@ from machine import UART
 from machine import Pin, PWM
 from umqtt.simple import MQTTClient
 import ujson
-# import mqttCallBack
-# from mqttCallBack import mqtt_sub_cb
 
-isSensorNotRunning = [1]
+
 loop = uasyncio.get_event_loop()
 # 
 mySensors = boatymon.sensors()
