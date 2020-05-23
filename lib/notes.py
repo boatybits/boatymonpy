@@ -1,4 +1,16 @@
 """notes:
+
+I2C addresses
+
+Scan i2c bus...
+i2c devices found: 4
+Decimal address:  64  | Hexa address:  0x40   - INA2219
+Decimal address:  72  | Hexa address:  0x48   - ADS1115B
+Decimal address:  74  | Hexa address:  0x4a   - ADS1115A
+Decimal address:  118  | Hexa address:  0x76
+
+
+_____________________________________________________________________
 To Do:
 
 
@@ -6,8 +18,7 @@ EasyEDA
 * 2 x INA219
 * 
 * 
-
--------------------------------
+_______________________________________________________________________
 Victron mppt solar regulator messages
 PID 0xA04C        -Product ID
 
@@ -63,3 +74,4 @@ Inverting 9
 
 
 """
+
