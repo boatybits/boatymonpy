@@ -203,8 +203,8 @@ class sensors:
         except Exception as e:
             pass
 
-    def getPressure(self):
-        self.checkConnection()
+    def getPressure(self, destination):
+ 
         try:
             vals = self.bme.read_compensated_data()
         except Exception as e:
@@ -213,13 +213,15 @@ class sensors:
             temp = vals[0]
             pres = vals[1]
             hum =  vals[2]
-        
-            self.insertIntoSigKdata("environment.outside.humidity", hum)  # insertIntoSigKdata(path, value)
-            self.utime.sleep_ms(100) 
-            self.insertIntoSigKdata("environment.outside.temperature", temp + 273.15)
-            self.utime.sleep_ms(100) 
-            self.insertIntoSigKdata("environment.outside.pressure", pres)
-            self.utime.sleep_ms(100) 
+            if destination == 'signalk':
+                self.insertIntoSigKdata("environment.outside.humidity", hum)  # insertIntoSigKdata(path, value)
+                self.utime.sleep_ms(100) 
+                self.insertIntoSigKdata("environment.outside.temperature", temp + 273.15)
+                self.utime.sleep_ms(100) 
+                self.insertIntoSigKdata("environment.outside.pressure", pres)
+                self.utime.sleep_ms(100)
+            elif destination == 'influxdb':
+                print(' would send to udp here')
         
     def getCurrent(self):
         try:
@@ -319,7 +321,8 @@ class sensors:
 #             except:
 #                 pass
         if self.conf['Run_BME280'] == 'True':
-            self.getPressure()
+            self.getPressure('signalk')
+#             self.getPressure('influxdb')
         if self.conf['Run_ADS1115'] == 'True':
             self.getVoltage()
         if self.conf['Run_INA-219']== 'True':
