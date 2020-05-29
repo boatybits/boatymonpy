@@ -27,15 +27,6 @@ class sensors:
     isRunning = []
     led = Pin(2, Pin.OUT)  #set internal pin to LED as an output
 
-#     nmea_1_in = Pin(13, Pin.IN)
-#     
-#     nmea_1_out = Pin(12, Pin.OUT)
-#     nmea_1_out.off()
-#     
-#     nmea_2_in = Pin(14, Pin.IN)
-# 
-#     nmea_2_out = Pin(27, Pin.OUT)
-#     nmea_2_out.value(1)
 
     i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) # set up i2c, pins 21 & 22
 
@@ -143,7 +134,7 @@ class sensors:
             print('\n','No. of networks = ', len(networks), '\n')
             print('networks = ', networks, '\n')
             
-            if networks[0][0] == b'padz':
+            if networks[0][0] == b'padz22':
                 print('Connecting to padz..')
                 sta_if.ifconfig(('192.168.43.146', '255.255.255.0', '192.168.43.125', '192.168.43.125'))
                 sta_if.connect('padz', '12348765')
@@ -159,6 +150,7 @@ class sensors:
                 utime.sleep(0.25)
                 print("\r>", counter, end = '')
                 counter += 1
+                self.flashLed()
                 if counter > 100:
                     machine.reset()
                 pass
@@ -208,6 +200,7 @@ class sensors:
         try:
             vals = self.bme.read_compensated_data()
         except Exception as e:
+            print('BME failed, possibly not connected. Error=',e)
             pass
         else:
             temp = vals[0]
@@ -261,12 +254,15 @@ class sensors:
         self.sendToUDP(ujson.dumps(_sigKdata),'10.10.10.1', self.conf['sigK_udp-port'])       
         
     def sendToUDP(self, message, udpAddr, udpPort):
-        s = usocket.socket(usocket.AF_INET, usocket.SOCK_DGRAM)
+        try:
+            s = usocket.socket(usocket.AF_INET, usocket.SOCK_DGRAM)
 #         s.sendto(dataJ, ('192.168.43.97', 55561)) # send to openplotter SignalK
 #         s.sendto(dataJson, ('10.10.10.1', 55561))
-        s.sendto(message, (udpAddr, int(udpPort)))
-        s.close()
-        
+            s.sendto(message, (udpAddr, int(udpPort)))
+            s.close()
+        except Exception as e:
+            print("UDP sending error=",e)
+            pass
     def str_to_bool(self, s):
         return str(s).lower() in ("yes", "true", "t", "1")
  

@@ -30,8 +30,13 @@ def mqtt_sub_cb(topic, msg):
 
 
 client.set_callback(mqtt_sub_cb)
-client.connect()
-client.subscribe('test')
+try:
+    client.connect()
+
+    client.subscribe('test')
+except Exception as e:
+    print("mqtt connect error",e)
+    pass
 
 
 async def call_sensors():
@@ -40,17 +45,17 @@ async def call_sensors():
 
         await uasyncio.sleep(1)
 
-async def call_mqtt():
-    while True:
-        client.check_msg()
-        await uasyncio.sleep_ms(500)
+# async def call_mqtt():
+#     while True:
+#         client.check_msg()
+#         await uasyncio.sleep_ms(500)
 
 async def fast_loop():
     while True:
         #mySensors.dataBasesend()
         await uasyncio.sleep_ms(200)
 
-loop.create_task(call_mqtt())
+# loop.create_task(call_mqtt())
 loop.create_task(call_sensors())
 loop.create_task(fast_loop())
 # loop.create_task(read_UART())
