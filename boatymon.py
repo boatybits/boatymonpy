@@ -13,11 +13,12 @@ import machine
 import network
 import onewire, ds18x20
 
-
 #______________________________________________________________________________________
 #______________________________________________________________________________________
 
 class sensors:
+    with open("config.py") as json_data_file:
+        conf = ujson.load(json_data_file)
     import utime
     ssid1 = "openplotter"
     password1 = "12345678"
@@ -46,13 +47,14 @@ class sensors:
     try:
         ds = ds18x20.DS18X20(wire)
         roms = ds.scan()
-        roms.append(roms[0])
+       # roms.append(roms[0])
         if roms ==[]:
             roms = 0
-            print('DS18b20  devices:', int.from_bytes(roms[0], 'little'), hex(int.from_bytes(roms[0], 'little')))
+        for rom in roms:          
+            print('      DS18b20  devices:', int.from_bytes(rom, 'little'), hex(int.from_bytes(rom, 'little')))
     except Exception as e:
-        isRunning.append('Run_DS18B20')
-        print( e)
+        conf['Run_DS18B20']='false'
+        print("      DS18B20 start error - ", e)
 
 #////////////////// INA setup /////////////////////////     
     try:
@@ -60,13 +62,16 @@ class sensors:
         ina = INA219(SHUNT_OHMS, i2c)
         print('INA219 instance created')
     except Exception as e:
-        print( e)
+        print("      INA start error - ", e)
         
     try:
         ina.configure()        # gain defaults to 3.2A. ina219.py line 132
+        print('     INA219 instance configure run')
     except Exception as e:
         isRunning.append('Run_INA-219')
         print('INA configure failed, possibly not connected. Error=',e)
+        
+
         
 #////////////////// BME setup /////////////////////////   
     try:
@@ -109,13 +114,13 @@ class sensors:
 #////////////////// INIT /// /////////////////////////
     def __init__(self):
         global isSensorNotRunning
-        with open("config.py") as json_data_file:
-            conf = ujson.load(json_data_file)
-        self.conf = conf
+#         with open("config.py") as json_data_file:
+#             conf = ujson.load(json_data_file)
+#         self.conf = conf
         for key in self.conf.keys():
-            print(key, "---", conf[key])
-        for sensor in sensors.isRunning:
-            conf[sensor]='false'
+            print(key, "---", self.conf[key])
+#         for sensor in sensors.isRunning:
+#             conf[sensor]='false'
         #print(conf)
         
         print('new sensors instance created')
@@ -129,21 +134,23 @@ class sensors:
         print('\n', 'sta_if.active = ', sta_if.active(), '\n')
         networks = sta_if.scan()
         if not sta_if.isconnected():
-            print('connecting to network...')
+            print('        connecting to network...')
             
-            print('\n','No. of networks = ', len(networks), '\n')
-            print('networks = ', networks, '\n')
-            
-            if networks[0][0] == b'padz22':
-                print('Connecting to padz..')
-                sta_if.ifconfig(('192.168.43.146', '255.255.255.0', '192.168.43.125', '192.168.43.125'))
-                sta_if.connect('padz', '12348765')
-                self.udpAddr = '192.168.43.97'
-            else:
-                print('No. of networks = ', len(networks))
-                print('networks = ', networks)
-                sta_if.connect(self.conf['ssid'], self.conf['password'])
-                self.udpAddr = '10.10.10.1'
+            print('\n','        No. of networks = ', len(networks), '\n')
+            print('        networks = ', networks, '\n')
+            try:
+                if networks[0][0] == b'padz22':
+                    print('Connecting to padz..')
+                    sta_if.ifconfig(('192.168.43.146', '255.255.255.0', '192.168.43.125', '192.168.43.125'))
+                    sta_if.connect('padz', '12348765')
+                    self.udpAddr = '192.168.43.97'
+                else:
+                    sta_if.ifconfig(('10.10.10.160', '255.255.255.0', '10.10.10.1', '10.10.10.1'))
+                    sta_if.connect(self.conf['ssid'], self.conf['password'])
+                    self.udpAddr = '10.10.10.1'
+            except Exception as e:
+                print('connect wifi failure, error =',e)
+                pass
                 
             counter = 0
             while not sta_if.isconnected():
@@ -154,7 +161,7 @@ class sensors:
                 if counter > 100:
                     machine.reset()
                 pass
-        print('\n', 'CONNECTED!! network config:',sta_if.isconnected(),'\n', sta_if.ifconfig(), '\n')
+        print('\n', '    CONNECTED!! network config:',sta_if.isconnected(),'\n', sta_if.ifconfig(), '\n')
  
         
     def flashLed(self):
@@ -218,26 +225,43 @@ class sensors:
         
     def getCurrent(self):
         try:
+#             self.ina.reset()
             self.insertIntoSigKdata("esp.currentSensor.voltage", self.ina.voltage())
-            self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
-            self.insertIntoSigKdata("esp.currentSensor.power", self.ina.power())
-            
-        except Exception as e:
-#                 print('INA1 read failed, Error=',e)
-            pass
-        else:
-            self.utime.sleep_ms(100) 
+            self.utime.sleep_ms(100)
             self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
             self.utime.sleep_ms(100)
-  
+            self.insertIntoSigKdata("esp.currentSensor.power", self.ina.power())
+#             self.utime.sleep_ms(100) 
+#             self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
+#             self.utime.sleep_ms(100)
+            
+        except Exception as e:
+            print('INA1 read failed, Error=',e)
+            pass
+#         else:
+#             self.utime.sleep_ms(100) 
+#             self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
+#             self.utime.sleep_ms(100)
+#             print('esle current loop')
   
     def getTemp(self):
         try:
             self.ds.convert_temp()
-            for count, rom in enumerate(self.roms):
+            utime.sleep_ms(200)
+            for rom in (self.roms):
                 value = self.ds.read_temp(rom)
-                path = "esp.ds18b20." + str(count + 1) + ".tempC"
-                self.insertIntoSigKdata(path, value + 273.15)
+             
+                if rom == (b'(\x7f@V\x05\x00\x00\xaf'):
+                    path = "esp.propulsion.head.temperature"
+                    self.insertIntoSigKdata(path, value + 273.15)
+                elif rom == (b"('\xd4V\x05\x00\x00\x88"):
+                    path = "esp.propulsion.alternator.temperature"
+                    self.insertIntoSigKdata(path, value + 273.15)
+                elif rom == (b'(a\xdeV\x05\x00\x00\xf2'):
+                    path = "esp.propulsion.exhaust.temperature"
+                    self.insertIntoSigKdata(path, value + 273.15)
+
+                
         except Exception as e:
             print("DS18B20 error Error=",e)
             pass
@@ -279,7 +303,7 @@ class sensors:
         self.flashLed()
         
     def datasend(self):  #which sensors to send, triggered by timer
-        
+
         self.flashLed()
         self.insertIntoSigKdata("esp.heartbeat.led", self.led.value())
         
@@ -326,5 +350,3 @@ class sensors:
         if self.conf['Run_DS18B20']== 'True':
             self.getTemp()
         self.checkConnection()
-        
-        

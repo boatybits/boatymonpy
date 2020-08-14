@@ -59,7 +59,10 @@ Inverting 9
 
 
 
-
+DS18B20 addresses:
+bytearray(b'(\x7f@V\x05\x00\x00\xaf')                                                                                                                 
+bytearray(b"('\xd4V\x05\x00\x00\x88")                                                                                                                 
+bytearray(b'(a\xdeV\x05\x00\x00\xf2')
 
 
 """
