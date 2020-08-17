@@ -129,24 +129,18 @@ class sensors:
         sta_if = network.WLAN(network.STA_IF)
         print('\n', 'sta_if.active = ', sta_if.active(), '\n')
         sta_if.active(True)
-#         sta_if.ifconfig(('192.168.1.10', '255.255.255.0', '192.168.43.125', '192.168.43.125'))
         print('\n', 'sta_if.active = ', sta_if.active(), '\n')
         networks = sta_if.scan()
+
         if not sta_if.isconnected():
             print('        connecting to network...')
             
             print('\n','        No. of networks = ', len(networks), '\n')
             print('        networks = ', networks, '\n')
             try:
-                if networks[0][0] == b'padz22':
-                    print('Connecting to padz..')
-                    sta_if.ifconfig(('192.168.43.146', '255.255.255.0', '192.168.43.125', '192.168.43.125'))
-                    sta_if.connect('padz', '12348765')
-                    self.udpAddr = '192.168.43.97'
-                else:
-                    sta_if.ifconfig(('10.10.10.160', '255.255.255.0', '10.10.10.1', '10.10.10.1'))
-                    sta_if.connect(self.conf['ssid'], self.conf['password'])
-                    self.udpAddr = '10.10.10.1'
+                sta_if.ifconfig((self.conf['IP_Address'], '255.255.255.0', '10.10.10.1', '10.10.10.1'))
+                sta_if.connect(self.conf['ssid'], self.conf['password'])
+                self.udpAddr = '10.10.10.1'
             except Exception as e:
                 print('connect wifi failure, error =',e)
                 pass
@@ -161,8 +155,6 @@ class sensors:
                     machine.reset()
                 pass
         print('\n', '    CONNECTED!! network config:',sta_if.isconnected(),'\n', sta_if.ifconfig(), '\n')
-        
- 
         
     def flashLed(self):
         self.led.value(not self.led.value())
