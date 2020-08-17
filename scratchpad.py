@@ -71,3 +71,40 @@ with open("config.py", 'w') as json_data_file:
                     self.sendToUDP((message), "10.10.10.1", self.conf['infDB_udp_port'])
                     print(message)
                     #self.sendToUDP(ujson.dumps(_sigKdata), self.conf['sigK_udp-port'])
+
+
+
+#-------------------------------------------------
+#         while self.uart.any() > 0:
+#             myData = self.uart.readline()
+#             try:
+#                 if myData.decode('utf8').split()[0] =="V":
+#                     self.insertIntoSigKdata("vic.electrical.solar.battVolts", int(myData.decode('utf8').split()[1])/1000)
+#             except:
+#                 pass
+#             
+#             try:
+#                 if myData.decode('utf8').split()[0] =="I":
+#                     self.insertIntoSigKdata("vic.electrical.solar.battCurrent", int(myData.decode('utf8').split()[1]))
+#             except:
+#                 pass
+#             
+#             try:
+#                 if myData.decode('utf8').split()[0] =="VPV":
+#                     self.insertIntoSigKdata("vic.electrical.solar.panelVolts", int(myData.decode('utf8').split()[1])/1000)
+#             except:
+#                 pass
+#             
+#             try:
+#                 if myData.decode('utf8').split()[0] =="CS":
+#                     self.insertIntoSigKdata("vic.electrical.solar.regState", int(myData.decode('utf8').split()[1]))
+#             except:
+#                 pass
+#             
+#             try:
+#                 if myData.decode('utf8').split()[0] =="PPV":
+#                     path = "vic.electrical.solar.panPower"
+#                     value = int(myData.decode('utf8').split()[1])
+#                     self.insertIntoSigKdata(path , value)
+#             except:
+#                 pass

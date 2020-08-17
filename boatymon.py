@@ -212,32 +212,22 @@ class sensors:
         
     def getCurrent(self):
         try:
-#             self.ina.reset()
             self.insertIntoSigKdata("esp.currentSensor.voltage", self.ina.voltage())
             self.utime.sleep_ms(100)
             self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
             self.utime.sleep_ms(100)
             self.insertIntoSigKdata("esp.currentSensor.power", self.ina.power())
-#             self.utime.sleep_ms(100) 
-#             self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
-#             self.utime.sleep_ms(100)
             
         except Exception as e:
             print('INA1 read failed, Error=',e)
             pass
-#         else:
-#             self.utime.sleep_ms(100) 
-#             self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
-#             self.utime.sleep_ms(100)
-#             print('esle current loop')
   
     def getTemp(self):
         try:
             self.ds.convert_temp()
             utime.sleep_ms(200)
             for rom in (self.roms):
-                value = self.ds.read_temp(rom)
-             
+                value = self.ds.read_temp(rom)           
                 if rom == (b'(\x7f@V\x05\x00\x00\xaf'):
                     path = "esp.propulsion.alternator.temperature"
                     self.insertIntoSigKdata(path, value + 273.15)
@@ -246,9 +236,7 @@ class sensors:
                     self.insertIntoSigKdata(path, value + 273.15)
                 elif rom == (b'(a\xdeV\x05\x00\x00\xf2'):
                     path = "esp.propulsion.head.temperature"
-                    self.insertIntoSigKdata(path, value + 273.15)
-
-                
+                    self.insertIntoSigKdata(path, value + 273.15)              
         except Exception as e:
             print("DS18B20 error Error=",e)
             pass
@@ -267,19 +255,16 @@ class sensors:
             self.debugPrint1(_sigKdata)
         except Exception as e:
             print("debug print error=",e)
-
-        # print(_sigKdata) 
         
     def sendToUDP(self, message, udpAddr, udpPort):
         try:
             s = usocket.socket(usocket.AF_INET, usocket.SOCK_DGRAM)
-#         s.sendto(dataJ, ('192.168.43.97', 55561)) # send to openplotter SignalK
-#         s.sendto(dataJson, ('10.10.10.1', 55561))
             s.sendto(message, (udpAddr, int(udpPort)))
             s.close()
         except Exception as e:
             print("UDP sending error=",e)
             pass
+
     def str_to_bool(self, s):
         return str(s).lower() in ("yes", "true", "t", "1")
     
@@ -294,54 +279,13 @@ class sensors:
         machine.reset()
             
     def dataBasesend(self):  #which sensors to send, triggered by timer
-        
         self.flashLed()
         
     def datasend(self):  #which sensors to send, triggered by timer
-
         self.flashLed()
         self.insertIntoSigKdata("esp.heartbeat.led", self.led.value())
-        #print("tick,tock,,")
+       
 
-        # try:
-        #     mqttCallBack.client.publish('t', "booted")
-        # except Exception as e:
-        #         print('client publish from boatymonpy - error = ',e)
-        #         pass
-        
-#         while self.uart.any() > 0:
-#             myData = self.uart.readline()
-#             try:
-#                 if myData.decode('utf8').split()[0] =="V":
-#                     self.insertIntoSigKdata("vic.electrical.solar.battVolts", int(myData.decode('utf8').split()[1])/1000)
-#             except:
-#                 pass
-#             
-#             try:
-#                 if myData.decode('utf8').split()[0] =="I":
-#                     self.insertIntoSigKdata("vic.electrical.solar.battCurrent", int(myData.decode('utf8').split()[1]))
-#             except:
-#                 pass
-#             
-#             try:
-#                 if myData.decode('utf8').split()[0] =="VPV":
-#                     self.insertIntoSigKdata("vic.electrical.solar.panelVolts", int(myData.decode('utf8').split()[1])/1000)
-#             except:
-#                 pass
-#             
-#             try:
-#                 if myData.decode('utf8').split()[0] =="CS":
-#                     self.insertIntoSigKdata("vic.electrical.solar.regState", int(myData.decode('utf8').split()[1]))
-#             except:
-#                 pass
-#             
-#             try:
-#                 if myData.decode('utf8').split()[0] =="PPV":
-#                     path = "vic.electrical.solar.panPower"
-#                     value = int(myData.decode('utf8').split()[1])
-#                     self.insertIntoSigKdata(path , value)
-#             except:
-#                 pass
         if self.conf['Run_BME280'] == 'True':
             self.getPressure('signalk')
 #             self.getPressure('influxdb')
