@@ -253,13 +253,13 @@ class sensors:
                 value = self.ds.read_temp(rom)
              
                 if rom == (b'(\x7f@V\x05\x00\x00\xaf'):
-                    path = "esp.propulsion.head.temperature"
-                    self.insertIntoSigKdata(path, value + 273.15)
-                elif rom == (b"('\xd4V\x05\x00\x00\x88"):
                     path = "esp.propulsion.alternator.temperature"
                     self.insertIntoSigKdata(path, value + 273.15)
-                elif rom == (b'(a\xdeV\x05\x00\x00\xf2'):
+                elif rom == (b"('\xd4V\x05\x00\x00\x88"):
                     path = "esp.propulsion.exhaust.temperature"
+                    self.insertIntoSigKdata(path, value + 273.15)
+                elif rom == (b'(a\xdeV\x05\x00\x00\xf2'):
+                    path = "esp.propulsion.head.temperature"
                     self.insertIntoSigKdata(path, value + 273.15)
 
                 

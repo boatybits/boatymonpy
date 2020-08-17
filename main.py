@@ -10,16 +10,9 @@ from umqtt.simple import MQTTClient
 import ujson
 from  mqttCallBack import mqtt_sub_cb, client, mySensors
 
-
-loop = uasyncio.get_event_loop()
-# 
-# mySensors = boatymon.sensors()
+loop = uasyncio.get_event_loop() #
 print(mySensors.conf)
 mySensors.connectWifi()
-# client = MQTTClient('52dc166c-2de7-43c1-88ff-f80211c7a8f6', '10.10.10.1')
-# client.set_callback(mqtt_sub_cb)
-
-
 
 try:
     client.connect()
@@ -28,9 +21,6 @@ try:
 except Exception as e:
     print("mqtt connect error",e)
     pass
-
-
-
 
 async def call_sensors():
     while True:
