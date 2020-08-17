@@ -10,17 +10,6 @@ from umqtt.simple import MQTTClient
 import ujson
 from  mqttCallBack import mqtt_sub_cb, client, mySensors
 
-# def mqtt_sub_cb(topic, msg):
-#     print(client)
-#     msgDecoded = msg.decode("utf-8")
-# #     client.publish('fromEspToPi', ujson.dumps(mySensors.conf))
-#     print("    ", topic, msg)
-#     if msgDecoded == 'send config':
-#         client.publish('t', ujson.dumps(mySensors.conf))
-#     elif msgDecoded == 'ds18b20 off':
-#         mySensors.conf['Run_DS18B20'] = 'false'
-#     elif msgDecoded == 'ds18b20 on':
-#         mySensors.conf['Run_DS18B20'] = 'True'
 
 loop = uasyncio.get_event_loop()
 # 
@@ -39,6 +28,8 @@ try:
 except Exception as e:
     print("mqtt connect error",e)
     pass
+
+
 
 
 async def call_sensors():

@@ -12,6 +12,7 @@ import utime
 import machine
 import network
 import onewire, ds18x20
+# from  mqttCallBack import client
 
 #______________________________________________________________________________________
 #______________________________________________________________________________________
@@ -124,7 +125,11 @@ class sensors:
         #print(conf)
         
         print('new sensors instance created')
-       
+
+    def debugPrint1(self, message):
+        if self.conf['debugPrint1'] == 'True':
+            print(message)
+
     def connectWifi(self):        
         import network
         sta_if = network.WLAN(network.STA_IF)
@@ -162,16 +167,12 @@ class sensors:
                     machine.reset()
                 pass
         print('\n', '    CONNECTED!! network config:',sta_if.isconnected(),'\n', sta_if.ifconfig(), '\n')
+        
  
         
     def flashLed(self):
         self.led.value(not self.led.value())
-        
-    def sub_cb(self, topic, msg):
-        print(str(topic), str(msg))
-        # string with encoding 'utf-8'
-
-         
+    
     def getVoltage(self):
         value=[0,1,2,3]
         voltage = [0,1,2,3]
@@ -275,7 +276,13 @@ class sensors:
         _sigKdata["updates"][0]["values"].append( {"path":path,
                     "value": value
                     })
-        self.sendToUDP(ujson.dumps(_sigKdata),'10.10.10.1', self.conf['sigK_udp-port'])       
+        self.sendToUDP(ujson.dumps(_sigKdata),'10.10.10.1', self.conf['sigK_udp-port'])      
+        try:
+            self.debugPrint1(_sigKdata)
+        except Exception as e:
+            print("debug print error=",e)
+
+        # print(_sigKdata) 
         
     def sendToUDP(self, message, udpAddr, udpPort):
         try:
@@ -289,14 +296,16 @@ class sensors:
             pass
     def str_to_bool(self, s):
         return str(s).lower() in ("yes", "true", "t", "1")
- 
-
     
     def checkConnection(self):
         wlan = network.WLAN(network.STA_IF)
         if not wlan.isconnected():
             print('Not connected to wifi, rebooting...')
             machine.reset()
+
+    def reboot(self):
+        print("..rebooting..")
+        machine.reset()
             
     def dataBasesend(self):  #which sensors to send, triggered by timer
         
@@ -306,6 +315,13 @@ class sensors:
 
         self.flashLed()
         self.insertIntoSigKdata("esp.heartbeat.led", self.led.value())
+        #print("tick,tock,,")
+
+        # try:
+        #     mqttCallBack.client.publish('t', "booted")
+        # except Exception as e:
+        #         print('client publish from boatymonpy - error = ',e)
+        #         pass
         
 #         while self.uart.any() > 0:
 #             myData = self.uart.readline()
