@@ -1,21 +1,15 @@
 from machine import Pin, I2C
-import bme280_float   #https://github.com/robert-hh/BME280
-# import bme680
-#---from i2c import I2CAdapter
-#---from bme680.i2c import I2CAdapter 
-import ads1x15        #https://github.com/robert-hh/ads1x15
+import bme280_float             #https://github.com/robert-hh/BME280
+import ads1x15                  #https://github.com/robert-hh/ads1x15
 from ina219 import INA219    
-from logging import INFO     #required by ina219
+from logging import INFO        #required by ina219
 import usocket
 import ujson
 import utime
 import machine
 import network
 import onewire, ds18x20
-# from  mqttCallBack import client
 
-#______________________________________________________________________________________
-#______________________________________________________________________________________
 
 class sensors:
     with open("config.py") as json_data_file:
@@ -27,7 +21,7 @@ class sensors:
     password2 = "12348765"
     udpAddr = '10.10.10.1'
     isRunning = []
-    led = Pin(2, Pin.OUT)  #set internal pin to LED as an output
+    led = Pin(2, Pin.OUT)           #set internal pin to LED as an output
 
 
     i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) # set up i2c, pins 21 & 22
@@ -91,7 +85,7 @@ class sensors:
 
 
 #////////////////// ADS1115 setup /////////////////////
-    #ads1115 set up, , 0x48 default, 0x4a->ADDR pin to SDA
+    #ads1115 set up, , 0x48 default, 0x4a->connect ADDR pin to SDA
     try:
         addr = 0x4a
         gain = 0
