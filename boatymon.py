@@ -23,17 +23,13 @@ class sensors:
     isRunning = []
     led = Pin(2, Pin.OUT)           #set internal pin to LED as an output
 
-
     i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) # set up i2c, pins 21 & 22
-
     print('Scan i2c bus...')
     devices = i2c.scan()
-
     if len(devices) == 0:
         print("No i2c device !")
     else:
         print('i2c devices found:',len(devices))
-
         for device in devices:  
             print("Decimal address: ",device," | Hexa address: ",hex(device))
   
@@ -65,9 +61,7 @@ class sensors:
     except Exception as e:
         isRunning.append('Run_INA-219')
         print('INA configure failed, possibly not connected. Error=',e)
-        
-
-        
+            
 #////////////////// BME setup /////////////////////////   
     try:
         bme = bme280_float.BME280(i2c=i2c)
@@ -75,14 +69,6 @@ class sensors:
     except Exception as e:
         isRunning.append('Run_BME280')
         print('BME start failed, possibly not connected. Error=',e)
-
-#    try:
-#         sensor = bme680.BME680(i2c_device=i2c)
-#         print('BME680 started')
-#     except Exception as e:
-#         print('BME start failed, possibly not connected. Error=',e)
-#
-
 
 #////////////////// ADS1115 setup /////////////////////
     #ads1115 set up, , 0x48 default, 0x4a->connect ADDR pin to SDA
@@ -102,9 +88,6 @@ class sensors:
 
     except Exception as e:
         print('ADS1115B start failed, possibly not connected. Error=',e)
-        
-
-
 #___________________________________________________________________________________________
 #////////////////// INIT /// /////////////////////////
     def __init__(self):
@@ -284,11 +267,8 @@ class sensors:
     def datasend(self):  #which sensors to send, triggered by timer
         self.flashLed()
         self.insertIntoSigKdata("esp.heartbeat.led", self.led.value())
-       
-
         if self.conf['Run_BME280'] == 'True':
             self.getPressure('signalk')
-#             self.getPressure('influxdb')
         if self.conf['Run_ADS1115'] == 'True':
             self.getVoltage()
         if self.conf['Run_INA-219']== 'True':

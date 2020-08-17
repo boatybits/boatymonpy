@@ -11,8 +11,10 @@ import ujson
 from  mqttCallBack import mqtt_sub_cb, client, mySensors
 
 loop = uasyncio.get_event_loop() 
+
 print(mySensors.conf)
 mySensors.connectWifi()
+
 try:
     client.connect()
     client.subscribe('fromPiToEsp')
