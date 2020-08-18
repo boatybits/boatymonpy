@@ -16,11 +16,11 @@ class sensors:
         conf = ujson.load(json_data_file)
     
     import utime
-    ssid1 = "openplotter"
-    password1 = "12345678"
-    ssid2 = "padz"
-    password2 = "12348765"
-    udpAddr = '10.10.10.1'
+    # ssid1 = "openplotter"
+    # password1 = "12345678"
+    # ssid2 = "padz"
+    # password2 = "12348765"
+    # udpAddr = '10.10.10.1'
     isRunning = []
     led = Pin(2, Pin.OUT)           #set internal pin to LED as an output
 
@@ -92,15 +92,8 @@ class sensors:
 #___________________________________________________________________________________________
 #////////////////// INIT /// /////////////////////////
     def __init__(self):
-        global isSensorNotRunning
-#         with open("config.py") as json_data_file:
-#             conf = ujson.load(json_data_file)
-#         self.conf = conf
         for key in self.conf.keys():
             print(key, "---", self.conf[key])
-#         for sensor in sensors.isRunning:
-#             conf[sensor]='false'
-        #print(conf)
         
         print('new sensors instance created')
 
