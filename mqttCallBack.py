@@ -12,7 +12,6 @@ def mqtt_sub_cb(topic, msg):
     global mySensors
     msgDecoded = msg.decode("utf-8")
 
-    # client.publish('fromEspToPi', "wert")
     print("\n","topic=", topic,"msg=", msg, "Decoded=", msgDecoded, "\n")
     if msgDecoded == 'send config':
         message = ujson.dumps(mySensors.conf).replace(",","\n") + '\n \n'
