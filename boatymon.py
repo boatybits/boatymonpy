@@ -14,6 +14,7 @@ import onewire, ds18x20
 class sensors:
     with open("config.py") as json_data_file:
         conf = ujson.load(json_data_file)
+    
     import utime
     ssid1 = "openplotter"
     password1 = "12345678"

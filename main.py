@@ -33,7 +33,7 @@ async def call_mqtt():
         try:
             client.check_msg()
         except Exception as e:
-            print("mqtt connect error from call_mqtt function, line 54. error = ",e)
+            print("mqtt connect error from call_mqtt function, main line 36. error = ",e)
             mySensors.connectWifi()
             pass
         await uasyncio.sleep_ms(500)

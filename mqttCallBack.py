@@ -40,6 +40,15 @@ def mqtt_sub_cb(topic, msg):
         client.publish('t', message)
         utime.sleep_ms(500)
         mySensors.reboot()
-    
+    elif msgDecoded == 'saveConf':
+        with open("config.py", "w") as f:
+            f.write(ujson.dumps(mySensors.conf))
+            print("conf saved")
+        client.publish('t', 'Conf Saved')
+    elif msgDecoded == 'printConfig':
+        with open("config.py") as f:
+            c = ujson.load(f)
+            print(c)
+        client.publish('t', 'Conf Saved')
          
 client.set_callback(mqtt_sub_cb)
