@@ -25,6 +25,8 @@ def mqtt_sub_cb(topic, msg):
     elif msgDecoded == 'ds18b20 on':
         print("DS in conf set to on")
         mySensors.conf['Run_DS18B20'] = 'True'
+        print('Scan i2c bus...')
+        mySensors.sendi2c()
     elif msgDecoded == 'debugPrint1_on':
         client.publish('t', 'Debug on')
         print("Debug 1 turned on")
