@@ -10,6 +10,6 @@
         "sigK_udp-port" : "55561",
         "infDB_udp_port" : "8089",
         "infDB_udp_addr" : "127.0.0.1",
-        "debugPrint1" : "False",
+        "debugPrint1" : "True",
         "IP_Address" : "10.10.10.160"
     }

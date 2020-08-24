@@ -21,7 +21,6 @@ class sensors:
     # ssid2 = "padz"
     # password2 = "12348765"
     # udpAddr = '10.10.10.1'
-    isRunning = []
     led = Pin(2, Pin.OUT)           #set internal pin to LED as an output
 
     i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) # set up i2c, pins 21 & 22
@@ -60,7 +59,6 @@ class sensors:
         ina.configure()        # gain defaults to 3.2A. ina219.py line 132
         print('     INA219 instance configure run')
     except Exception as e:
-        isRunning.append('Run_INA-219')
         print('INA configure failed, possibly not connected. Error=',e)
             
 #////////////////// BME setup /////////////////////////   
@@ -68,7 +66,6 @@ class sensors:
         bme = bme280_float.BME280(i2c=i2c)
         print('BME started')
     except Exception as e:
-        isRunning.append('Run_BME280')
         print('BME start failed, possibly not connected. Error=',e)
 
 #////////////////// ADS1115 setup /////////////////////
@@ -213,7 +210,12 @@ class sensors:
                     self.insertIntoSigKdata(path, value + 273.15)
                 elif rom == (b'(a\xdeV\x05\x00\x00\xf2'):
                     path = "esp.propulsion.head.temperature"
-                    self.insertIntoSigKdata(path, value + 273.15)              
+                    self.insertIntoSigKdata(path, value + 273.15)
+                elif rom == (b'(\xdd\xdfU\x05\x00\x00\xcd'):
+                    path = "esp.electrical.batteries.housebank.temperature"
+                    self.insertIntoSigKdata(path, value + 273.15)
+                    
+                    
         except Exception as e:
             print("DS18B20 error Error=",e)
             pass
