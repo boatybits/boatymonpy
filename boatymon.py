@@ -16,12 +16,8 @@ class sensors:
         conf = ujson.load(json_data_file)
     
     import utime
-    # ssid1 = "openplotter"
-    # password1 = "12345678"
-    # ssid2 = "padz"
-    # password2 = "12348765"
-    # udpAddr = '10.10.10.1'
-    led = Pin(2, Pin.OUT)           #set internal pin to LED as an output
+  
+    led = Pin(2, Pin.OUT)      #set internal pin to LED as an output
 
     i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) # set up i2c, pins 21 & 22
     print('Scan i2c bus...')
