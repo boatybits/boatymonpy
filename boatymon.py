@@ -16,11 +16,11 @@ class sensors:
         conf = ujson.load(json_data_file)
     
     import utime
-  
-    led = Pin(2, Pin.OUT)      #set internal pin to LED as an output
 
-    i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) # set up i2c, pins 21 & 22
-    print('Scan i2c bus...')
+    led = Pin(2, Pin.OUT)           #internal LED is on pin 2
+
+    i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) 
+    print('Scanning i2c bus...')
     devices = i2c.scan()
     if len(devices) == 0:
         print("No i2c device !")
