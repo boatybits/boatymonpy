@@ -56,8 +56,20 @@ Absorption 4
 Float 5 
 Inverting 9
 
+------------------------
+INA addresses. 
+Onboard = default - ox40
+Battery current -
+(Bridge A0 - 0x41, bridge A1  0x44)
 
-
+scan i2c bus...                                                                                                                                       
+i2c devices found: 5                                                                                                                                  
+Decimal address:  64  | Hexa address:  0x40    - Onboard INA219
+Decimal address:  68  | Hexa address:  0x44    - Battery shunt ina219 
+Decimal address:  72  | Hexa address:  0x48    - ADS115B
+Decimal address:  74  | Hexa address:  0x4a    - ADS1115A
+Decimal address:  118  | Hexa address:  0x76   - BME280
+---------------------------
 
 DS18B20 addresses:
 bytearray(b'(\x7f@V\x05\x00\x00\xaf')        alternator                                                                                                         

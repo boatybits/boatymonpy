@@ -56,6 +56,19 @@ class sensors:
         print('     INA219 instance configure run')
     except Exception as e:
         print('INA configure failed, possibly not connected. Error=',e)
+
+    try:
+        SHUNT_OHMS = 0.001
+        inaB = INA219(SHUNT_OHMS, i2c, address=0x44)
+        print('INA219B instance created')
+    except Exception as e:
+        print("      INA B start error - ", e)
+        
+    try:
+        inaB.configure(inaB.GAIN_1_40MV)        # gain defaults to 3.2A. ina219.py line 132
+        print('     INA219 B instance configure run')
+    except Exception as e:
+        print('INA B configure failed, possibly not connected. Error=',e)
             
 #////////////////// BME setup /////////////////////////   
     try:
@@ -139,25 +152,50 @@ class sensors:
                 value[i] = self.ads1115A.read(4,i)
                 voltage[i] = self.ads1115A.raw_to_v(value[i])
                 if i == 2:
-                    calibration = 6.09
+                    calibration = 6.12
                 elif i == 3:
-                    calibration = 6.11
+                    calibration = 6.1975
                 self.insertIntoSigKdata("electrical.ads1115-1." + str(i), voltage[i] * calibration)
                 calibration = 1
             except Exception as e:
                 pass
+        # try:
+        #     print("ads2 =", ads1115B)
+        # except:
+        #     print("error=", e)
+        #     pass
+        # value=[0,1,2,3]
+        # voltage = [0,1,2,3]
+        # for i in range(4): # 0 - 3
+        #     calibration = 6.09
+        #     try:
+        #         value[i] = self.ads1115B.read(4,i)
+        #         voltage[i] = self.ads1115B.raw_to_v(value[i])
+        #         # if i == 2:
+        #         #     calibration = 6.09
+        #         # elif i == 3:
+        #         #     calibration = 6.11
+        #         self.insertIntoSigKdata("electrical.ads1115-2." + str(i), voltage[i] * calibration)
+        #         print('voltage ', i , '= ',voltage(i))
+        #     except Exception as e:
+        #         print("ADS2 error", e)
+        #         pass
 
-        try:
-            calibration = 6.09
-            value = self.ads1115B.read(4, 0, 1)
-            voltage = self.ads1115B.raw_to_v(value)
-            self.insertIntoSigKdata("electrical.ads1115-2.1", voltage * calibration)
-            calibration = 6.09
-            value = self.ads1115B.read(4,2,3)
-            voltage = self.ads1115B.raw_to_v(value)
-            self.insertIntoSigKdata("electrical.ads1115-2.2", voltage * calibration)
-        except Exception as e:
-            pass
+
+
+
+        # try:
+        #     calibration = 6
+        #     value = self.ads1115B.read(4, 3)
+        #     voltage = self.ads1115B.raw_to_v(value)
+        #     self.insertIntoSigKdata("electrical.ads1115-2.1", voltage * calibration)
+        #     calibration = 1
+        #     value = self.ads1115B.read(4, 1)
+        #     voltage = self.ads1115B.raw_to_v(value)
+        #     self.insertIntoSigKdata("electrical.ads1115-2.2", voltage * calibration)
+        # except Exception as e:
+        #     print("ADS2 error", e)
+        #     pass
 
     def getPressure(self, destination):
  
@@ -187,6 +225,14 @@ class sensors:
             self.insertIntoSigKdata("esp.currentSensor.current", self.ina.current())
             self.utime.sleep_ms(100)
             self.insertIntoSigKdata("esp.currentSensor.power", self.ina.power())
+            inaB_config = 1.16
+            totalC = 0
+            for i in range(1, 101):
+                current = self.inaB.current()
+                totalC += current
+                self.utime.sleep_ms(1)
+            current = current / 100 * inaB_config
+            self.insertIntoSigKdata("esp.currentSensorB.current", current)
             
         except Exception as e:
             print('INA1 read failed, Error=',e)
@@ -257,6 +303,7 @@ class sensors:
         self.flashLed()
         
     def datasend(self):  #which sensors to send, triggered by timer
+
         self.flashLed()
         self.insertIntoSigKdata("esp.heartbeat.led", self.led.value())
         if self.conf['Run_BME280'] == 'True':
@@ -268,6 +315,12 @@ class sensors:
         if self.conf['Run_DS18B20']== 'True':
             self.getTemp()
         self.checkConnection()
+
+        try:
+            self.debugPrint1(self.ina._gain)
+            self.debugPrint1(self.inaB._gain)
+        except Exception as e:
+            print("debug print error=",e)
         
     def sendi2c(self):
         devices = self.i2c.scan()
