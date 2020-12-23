@@ -1,15 +1,20 @@
-{
-        "ssid" : "openplotter",
-        "password" : "12345678",
-        "Run_DS18B20" : "True",
-        "Run_ADS1115" : "True",
-        "Run_INA-219" : "True",
-        "Run_BME280" : "True",
-        "Run_DS18B20_InfDb" : "False",
-        "udpAddr" : "10.10.10.1",
-        "sigK_udp-port" : "55561",
-        "infDB_udp_port" : "8089",
-        "infDB_udp_addr" : "127.0.0.1",
-        "debugPrint1" : "True",
-        "IP_Address" : "10.10.10.160"
+
+config = {
+    "ssid" : "padz",
+    "password" : "12348765",
+    "debugPrint" : True,
+    "IP_Address" : "192.168.43.160",
+    "ina": {
+        "ina1" : {
+            "enabled" : True,
+            "addr" : "ox40",
+            "shunt_Ohms" : "0.1"
+            },
+        "ina2" : {
+            "enabled" : False,
+            "addr" : "ox44",
+            "shunt_Ohms" : "0.1"
+            }        
+        },
+    "bmeEnabled" : True
     }
