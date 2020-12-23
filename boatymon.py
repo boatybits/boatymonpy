@@ -65,7 +65,7 @@ class sensors:
         print("      INA B start error - ", e)
         
     try:
-        inaB.configure(inaB.GAIN_1_40MV)        # gain defaults to 3.2A. ina219.py line 132
+        inaB.configure(gain=GAIN_1_40MV)        # gain defaults to 3.2A. ina219.py line 132
         print('     INA219 B instance configure run')
     except Exception as e:
         print('INA B configure failed, possibly not connected. Error=',e)
