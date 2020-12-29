@@ -1,5 +1,5 @@
 import esp
-
+import uos
 esp.osdebug(None)
 
 import webrepl

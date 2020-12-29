@@ -4,6 +4,8 @@ import machine
 import esp32
 import boatymon
 import uasyncio
+import uos
+
 
 loop = uasyncio.get_event_loop()
 mySensors = boatymon.sensors()
