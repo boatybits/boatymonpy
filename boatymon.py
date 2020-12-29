@@ -12,6 +12,7 @@ import bme280_float             #https://github.com/robert-hh/BME280
 # import usocket
 
 # import onewire, ds18x20
+import websocket
 
 class sensors:
 
