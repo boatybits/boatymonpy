@@ -108,6 +108,7 @@ class sensors:
                 try:
                     self.insertIntoSigKdata("esp.ina1.current", self.current_sensors[key].current())
                     self.insertIntoSigKdata("esp.ina1.voltage", self.current_sensors[key].voltage())
+                    self.insertIntoSigKdata("esp.ina1.power", self.current_sensors[key].power())
 #                     v = self.current_sensors[key].voltage()
 #                     a = self.current_sensors[key].current()
 #                     self.dbp(v)
