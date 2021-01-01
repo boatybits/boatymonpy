@@ -12,7 +12,7 @@ import bme280_float             #https://github.com/robert-hh/BME280
 # import usocket
 
 # import onewire, ds18x20
-import websocket
+
 
 class sensors:
 
@@ -163,6 +163,8 @@ class sensors:
     def flashLed(self):
         self.__led.value(not self.__led.value())
 
+    def checkWifi(self):
+        pass
 
     def insertIntoSigKdata(self, path, value):
         try:
