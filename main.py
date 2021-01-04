@@ -6,12 +6,14 @@ import boatymon
 import uasyncio
 import uos
 from umqtt.simple import MQTTClient
+import ubinascii
 
 
 
 loop = uasyncio.get_event_loop() 
 mySensors = boatymon.sensors()
-client = MQTTClient('52dc166c-2de7-43c1-88ff-f80211c7a8f6', '192.168.43.93')
+client_id = ubinascii.hexlify(machine.unique_id())
+client = MQTTClient(client_id, '192.168.43.93')
 
 def mqtt_sub_cb(topic, msg):
     msgDecoded = msg.decode("utf-8")
@@ -30,10 +32,17 @@ except Exception as e:
 
 async def call_sensors():
     while True:
+        mySensors.checkWifi()
         mySensors.flashLed()
-        client.check_msg()
+        try:
+            client.check_msg()
+        except Exception as e:
+                print('MQTT client check, error =',e)
+                pass
+        mySensors.getTemp()
         mySensors.getCurrent()
         mySensors.getPressure()
+        
         await uasyncio.sleep(1)
 
 async def fast_loop():
