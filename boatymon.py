@@ -8,7 +8,7 @@ import network
 from ina219 import INA219    
 from logging import INFO        #required by ina219 SS
 import bme280_float             #https://github.com/robert-hh/BME280
-# import ads1x15                  #https://github.com/robert-hh/ads1x15
+import ads1x15                  #https://github.com/robert-hh/ads1x15
 # import usocket
 
 import onewire, ds18x20
@@ -17,6 +17,7 @@ import onewire, ds18x20
 class sensors:
 
     __led = Pin(2, Pin.OUT)      #internal led is on pin 2
+    check_wifi_counter = 0
     sta_if = network.WLAN(network.STA_IF)
     current_sensors = {}
     onewirePin = machine.Pin(15)
@@ -49,12 +50,40 @@ class sensors:
         self.load_INA()
         self.load_BME()
         self.load_ds18b20()
+        self.load_ads1115()
         self.dbp('new sensors instance created, off we go')
  
     def dbp(self, message):
         if config["debugPrint"]:
             print(message)
- 
+
+    def connectWifi(self):
+        self.sta_if.active(True)
+        try:
+            x = self.sta_if.scan()
+            print("\n\nwifi networks found - ", x)
+        except Exception as e:
+                print('No networks found-rebooting, error =',e)
+                machine.reset()
+        if not self.sta_if.isconnected():
+            self.dbp('\n\n*****connecting to network...')            
+            try:
+                self.sta_if.ifconfig((config["IP_Address"], '255.255.255.0', '192.168.43.78', '192.168.43.78'))
+                self.sta_if.connect(config["ssid"], config["password"])
+            except Exception as e:
+                message = ('connect wifi failure, error =',e); self.dbp(message)
+                pass               
+            counter = 0
+            while not self.sta_if.isconnected():
+                utime.sleep(0.25)
+                print("\r>", counter, end = '')      #print counter in same place each iteration
+                counter += 1
+                self.flashLed()               
+                if counter > 100:
+                    break
+                pass
+        message = ('****CONNECTED!! network config:', self.sta_if.ifconfig()); self.dbp(message)
+
     def load_i2c(self):
         self.i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) 
         self.dbp('Scanning i2c bus...')
@@ -62,7 +91,7 @@ class sensors:
         if len(devices) == 0:
             self.dbp("No i2c device !")
         else:
-            message = 'No. of i2c devices found:',len(devices); self.dbp(message)
+            message = '\n\nNo. of i2c devices found:',len(devices); self.dbp(message)
             for device in devices:  
                 message = ("Decimal address: ",device," | Hexa address: ",hex(device)); self.dbp(message)
                 
@@ -72,12 +101,12 @@ class sensors:
                 try:
                     SHUNT_OHMS = 0.1     #config["ina"][ina]["shunt_Ohms"]
                     self.current_sensors[i] = INA219(SHUNT_OHMS, self.i2c)
-                    message = '****INA219 instance created', i,  self.current_sensors[i]; self.dbp(message)
+                    message = '\n****INA219 instance created', i,  self.current_sensors[i]; self.dbp(message)
                 except Exception as e:
                     message = "****INA start error - ", e; self.dbp(message)                
                 try:
                     self.current_sensors[i].configure()        # gain defaults to 3.2A. ina219.py line 132
-                    message = '****INA219 instance configure run with ', self.current_sensors[i]; self.dbp(message)
+                    message = '\n****INA219 instance configure run with ', self.current_sensors[i]; self.dbp(message)
                 except Exception as e:
                     message = 'INA configure failed, possibly not connected. Error=',e;  self.dbp(message)
    
@@ -85,10 +114,39 @@ class sensors:
         if config["bmeEnabled"]:
             try:
                 self.bme = bme280_float.BME280(i2c=self.i2c)
-                print('BME started')
+                print('\nBME started')
             except Exception as e:
                 config["bmeEnabled"] = False
                 print('BME start failed, possibly not connected. Error=',e)
+                
+    def load_ads1115(self):
+        try:
+            addr = 0x4a
+            gain = 0
+            self.ads1115A = ads1x15.ADS1115(self.i2c, addr, gain)
+            print("\nADS1115A started")
+        except Exception as e:
+            print('ADS1115A start failed, possibly not connected. Error=',e)
+        try:
+            addr = 0x48
+            gain = 0
+            self.ads1115B = ads1x15.ADS1115(self.i2c, addr, gain)
+            print("ADS1115B started\n")
+        except Exception as e:
+            print('ADS1115B start failed, possibly not connected. Error=',e)
+
+    def load_ds18b20(self):
+        if config["ds18b20"]["enabled"]:
+            try:
+                self.ds = ds18x20.DS18X20(self.wire)
+                self.roms = self.ds.scan()
+                if self.roms ==[]:
+                    self.roms = 0
+                for rom in self.roms:          
+                    print('      DS18b20  devices:', int.from_bytes(rom, 'little'), rom, hex(int.from_bytes(rom, 'little')))
+                print('DS18B20 started')
+            except Exception as e:
+                print('ds18b20 start failed, possibly not connected. Error=',e)
 
     def getCurrent(self):
         for key in self.current_sensors:
@@ -103,19 +161,7 @@ class sensors:
 #                     self.dbp(a)
                 except Exception as e:
                     message = "getCurrent error -", e; self.dbp(message)
-    def load_ds18b20(self):
-        if config["ds18b20"]["enabled"]:
-            try:
-                self.ds = ds18x20.DS18X20(self.wire)
-                self.roms = self.ds.scan()
-                if self.roms ==[]:
-                    self.roms = 0
-                for rom in self.roms:          
-                    print('      DS18b20  devices:', int.from_bytes(rom, 'little'), rom, hex(int.from_bytes(rom, 'little')))
-                print('DS18B20 started')
-            except Exception as e:
-                print('ds18b20 start failed, possibly not connected. Error=',e)       
-    
+
     def getPressure(self):
         if config["bmeEnabled"]:
             try:
@@ -150,42 +196,14 @@ class sensors:
             print("DS18B20 error Error=",e)
             pass
     
-    def connectWifi(self):        
-#         sta_if = network.WLAN(network.STA_IF)
-        self.sta_if.active(True)
-        try:
-            x = self.sta_if.scan()
-            print("wifi networks found - ", x)
-        except Exception as e:
-                print('No networks found-rebooting, error =',e)
-                machine.reset()              
-#         self.dbp(self.sta_if.scan())
-        if not self.sta_if.isconnected():
-            self.dbp('*****connecting to network...')            
-            try:
-                self.sta_if.ifconfig((config["IP_Address"], '255.255.255.0', '192.168.43.78', '192.168.43.78'))
-                self.sta_if.connect(config["ssid"], config["password"])
-            except Exception as e:
-                message = ('connect wifi failure, error =',e); self.dbp(message)
-                pass               
-            counter = 0
-            while not self.sta_if.isconnected():
-                utime.sleep(0.25)
-                print("\r>", counter, end = '')      #print counter in same place each iteration
-                counter += 1
-                self.flashLed()
-                
-                if counter > 100:
-                    machine.reset()
-                pass
-        message = ('****CONNECTED!! network config:', self.sta_if.ifconfig()); self.dbp(message)
 
     def flashLed(self):
         self.__led.value(not self.__led.value())
 
     def checkWifi(self):
-        if not self.sta_if.isconnected():
+        if not self.sta_if.isconnected() and self.check_wifi_counter>60:
             machine.reset()
+        self.check_wifi_counter += 1
         pass
 
     def insertIntoSigKdata(self, path, value):
@@ -202,23 +220,26 @@ class sensors:
             print("Send signalk error = ",e)
 
 #     
-#     def getVoltage(self):
-#         value=[0,1,2,3]
-#         voltage = [0,1,2,3]
-#         calibration = 1
-#         for i in range(4): # 0 - 3
-# #           def read(self, rate=4, channel1=0, channel2=None):, line 156 ads1x15.py
-#             try:
-#                 value[i] = self.ads1115A.read(4,i)
-#                 voltage[i] = self.ads1115A.raw_to_v(value[i])
-#                 if i == 2:
-#                     calibration = 6.12
-#                 elif i == 3:
-#                     calibration = 6.1975
-#                 self.insertIntoSigKdata("electrical.ads1115-1." + str(i), voltage[i] * calibration)
-#                 calibration = 1
-#             except Exception as e:
-#                 pass
+    def getVoltage(self):       
+
+        
+        value=[0,1,2,3]
+        voltage = [0,1,2,3]
+        calibration = 1
+        for i in range(4): # 0 - 3
+#           def read(self, rate=4, channel1=0, channel2=None):, line 156 ads1x15.py
+            try:
+                value[i] = self.ads1115A.read(4,i)
+                voltage[i] = self.ads1115A.raw_to_v(value[i])
+                if i == 2:
+                    calibration = 6.12
+                elif i == 3:
+                    calibration = 6.09
+                self.insertIntoSigKdata("electrical.ads1115-1." + str(i), voltage[i] * calibration)
+                calibration = 1
+            except Exception as e:
+                print("ADS1 error", e)
+                pass
 #         # try:
 #         #     print("ads2 =", ads1115B)
 #         # except:

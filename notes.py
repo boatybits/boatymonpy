@@ -66,7 +66,7 @@ scan i2c bus...
 i2c devices found: 5                                                                                                                                  
 Decimal address:  64  | Hexa address:  0x40    - Onboard INA219
 Decimal address:  68  | Hexa address:  0x44    - Battery shunt ina219 
-Decimal address:  72  | Hexa address:  0x48    - ADS115B
+Decimal address:  72  | Hexa address:  0x48    - ADS1115B
 Decimal address:  74  | Hexa address:  0x4a    - ADS1115A
 Decimal address:  118  | Hexa address:  0x76   - BME280
 ---------------------------
@@ -75,6 +75,7 @@ DS18B20 addresses:
 bytearray(b'(\x7f@V\x05\x00\x00\xaf')        alternator                                                                                                         
 bytearray(b"('\xd4V\x05\x00\x00\x88")        exhaust                                                                                                         
 bytearray(b'(a\xdeV\x05\x00\x00\xf2')        head
+bytearray(b'(\xdd\xdfU\x05\x00\x00\xcd')     battery
 
 
 """
