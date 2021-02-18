@@ -18,6 +18,7 @@ class sensors:
 
     __led = Pin(2, Pin.OUT)      #internal led is on pin 2
     check_wifi_counter = 0
+    wifi_connect_isRunning = False
     sta_if = network.WLAN(network.STA_IF)
     current_sensors = {}
     onewirePin = machine.Pin(15)
@@ -58,13 +59,18 @@ class sensors:
             print(message)
 
     def connectWifi(self):
+        self.wifi_connect_isRunning = True
         self.sta_if.active(True)
         try:
             x = self.sta_if.scan()
+            if x is None:
+                self.wifi_connect_isRunning = False
+                return
             print("\n\nwifi networks found - ", x)
         except Exception as e:
-                print('No networks found-rebooting, error =',e)
-                machine.reset()
+            print('No networks found, error =',e)
+            self.wifi_connect_isRunning = False
+            return
         if not self.sta_if.isconnected():
             self.dbp('\n\n*****connecting to network...')            
             try:
@@ -83,6 +89,7 @@ class sensors:
                     break
                 pass
         message = ('****CONNECTED!! network config:', self.sta_if.ifconfig()); self.dbp(message)
+        self.wifi_connect_isRunning = False
 
     def load_i2c(self):
         self.i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) 
@@ -201,10 +208,12 @@ class sensors:
         self.__led.value(not self.__led.value())
 
     def checkWifi(self):
-        if not self.sta_if.isconnected() and self.check_wifi_counter>60:
-            machine.reset()
+        if not self.sta_if.isconnected() and self.check_wifi_counter>60 and self.wifi_connect_isRunning == False:
+            self.check_wifi_counter = 0
+            self.connectWifi()
+            return
         self.check_wifi_counter += 1
-        pass
+        return
 
     def insertIntoSigKdata(self, path, value):
         try:
