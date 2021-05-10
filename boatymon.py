@@ -1,4 +1,4 @@
-
+import socket
 from config import *
 from machine import Pin, I2C
 import machine
@@ -23,36 +23,19 @@ class sensors:
     current_sensors = {}
     onewirePin = machine.Pin(15)
     wire = onewire.OneWire(onewirePin)
-#             
 
-# #////////////////// ADS1115 setup /////////////////////
-#     #ads1115 set up, , 0x48 default, 0x4a->connect ADDR pin to SDA
-#     try:
-#         addr = 0x4a
-#         gain = 0
-#         ads1115A = ads1x15.ADS1115(i2c, addr, gain)
-#         print("ADS1115A started")
-#     except Exception as e:
-#         print('ADS1115A start failed, possibly not connected. Error=',e)
-# 
-#     try:
-#         addr = 0x48
-#         gain = 0
-#         ads1115B = ads1x15.ADS1115(i2c, addr, gain)
-#         print("ADS1115B started")
-# 
-#     except Exception as e:
-#         print('ADS1115B start failed, possibly not connected. Error=',e)
 # #___________________________________________________________________________________________
 #////////////////// INIT /// /////////////////////////
     def __init__(self):
-        self.connectWifi()
+        self.config = config
+        
         self.load_i2c()
         self.load_INA()
         self.load_BME()
         self.load_ds18b20()
         self.load_ads1115()
         self.dbp('new sensors instance created, off we go')
+        self.connectWifi()
  
     def dbp(self, message):
         if config["debugPrint"]:
@@ -85,7 +68,8 @@ class sensors:
                 print("\r>", counter, end = '')      #print counter in same place each iteration
                 counter += 1
                 self.flashLed()               
-                if counter > 100:
+                if counter > 10:
+                    machine.reset()
                     break
                 pass
         message = ('****CONNECTED!! network config:', self.sta_if.ifconfig()); self.dbp(message)
@@ -181,9 +165,9 @@ class sensors:
                 temp = vals[0]
                 pres = vals[1]
                 hum =  vals[2]
-                self.insertIntoSigKdata("environment.outside.humidity", hum)  # insertIntoSigKdata(path, value)
+                self.insertIntoSigKdata("environment.outside.humidity", hum/100)  # insertIntoSigKdata(path, value)
                 utime.sleep_ms(10) 
-                self.insertIntoSigKdata("environment.outside.temperature", temp + 273.15)
+                self.insertIntoSigKdata("environment.chartTable.temperature", temp + 273.15)
                 utime.sleep_ms(10) 
                 self.insertIntoSigKdata("environment.outside.pressure", pres)
                 utime.sleep_ms(10)
@@ -208,7 +192,10 @@ class sensors:
         self.__led.value(not self.__led.value())
 
     def checkWifi(self):
-        if not self.sta_if.isconnected() and self.check_wifi_counter>60 and self.wifi_connect_isRunning == False:
+        if not self.sta_if.isconnected() and self.check_wifi_counter>6 and self.wifi_connect_isRunning == False:
+            for i in range(1,10):
+                self.flashLed()
+                utime.sleep(0.25)
             self.check_wifi_counter = 0
             self.connectWifi()
             return
@@ -216,15 +203,18 @@ class sensors:
         return
 
     def insertIntoSigKdata(self, path, value):
+#         https://wiki.python.org/moin/UdpCommunication
         try:
-            _sigKdata = {
-            "updates": [
-                    {"values":[]
-                    }]}
-            _sigKdata["updates"][0]["values"].append( {"path":path,
-                        "value": value
-                        })
-            print(ujson.dumps(_sigKdata))
+            UDP_IP = "192.168.43.93"
+            UDP_PORT = 10119
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            _sigKdata = {"updates": [{"values":[]}]}
+            _sigKdata["updates"][0]["values"].append( {"path":path,"value": value})
+#             _sigKdata["updates"][0]["values"].append( {"path","23"})
+#             print(ujson.dumps(_sigKdata))
+            MESSAGE = (ujson.dumps(_sigKdata))
+            sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+            sock.close()
         except Exception as e:
             print("Send signalk error = ",e)
 
@@ -246,6 +236,7 @@ class sensors:
                     calibration = 6.09
                 self.insertIntoSigKdata("electrical.ads1115-1." + str(i), voltage[i] * calibration)
                 calibration = 1
+                print("Voltage", i , "=", voltage[i]* calibration)
             except Exception as e:
                 print("ADS1 error", e)
                 pass

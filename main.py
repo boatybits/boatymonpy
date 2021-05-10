@@ -3,6 +3,7 @@
 import machine
 import esp32
 import boatymon
+import utime
 import uasyncio as asyncio
 import uos
 from umqtt.simple import MQTTClient
@@ -21,12 +22,21 @@ client = MQTTClient(client_id, '192.168.43.93')
 def mqtt_sub_cb(topic, msg):
     msgDecoded = msg.decode("utf-8")
     print("\n","topic=", topic,"msg=", msg, "Decoded=", msgDecoded, "\n")
+    if msgDecoded == "config":
+        for key, value in mySensors.config.items():
+            print(key, ' : ', value)
+            mess = key + ":" + str(value)
+            client.publish("ESP_LOG", mess)
+        client.publish("ESP_LOG","testttt")
+#         print(mySensors.config)
 
 client.set_callback(mqtt_sub_cb)
     
 try:
     client.connect()
     client.subscribe('fromPiToEsp')
+    utime.sleep(0.25)
+    client.publish("ESP_LOG","client connected and subscribed, MQTT callback set")
     print('       client connected and subscribed, MQTT callback set')
 except Exception as e:
     print("mqtt connect error",e)
@@ -35,15 +45,19 @@ except Exception as e:
 async def call_sensors():
     while True:
         try:
-            mySensors.flashLed()      
-            client.check_msg()    
+            mySensors.flashLed()       
             mySensors.getTemp()
             mySensors.getCurrent()
             mySensors.getPressure()
             mySensors.checkWifi()
             mySensors.getVoltage()
         except Exception as e:
-            print('MQTT client check, error =',e)
+            print('Call Sensors routine error =',e)
+            pass
+        try:    
+            client.check_msg()    
+        except Exception as e:
+            print('MQTT error =',e)
             pass
         await asyncio.sleep(1)
 
@@ -63,8 +77,11 @@ async def fast_loop():
             elif values[0] == 'SOC':                   
                 SOC = float(int(values[1])/10)
                 mySensors.insertIntoSigKdata("batteries.shunt.soc", SOC)
+            elif values[0] == 'T':                   
+                T = float(int(values[1])+273.15)
+                mySensors.insertIntoSigKdata("batteries.shunt.temperature", T)
         except Exception as e:
-            print("Serial input decode error",e)
+            #print("Serial input decode error",e)
             pass
 
 loop.create_task(call_sensors())
