@@ -16,8 +16,9 @@ uart.init(baudrate=19200,bits=8,parity=None)
 
 loop = asyncio.get_event_loop() 
 mySensors = boatymon.sensors()
+utime.sleep(20)
 client_id = ubinascii.hexlify(machine.unique_id())
-client = MQTTClient(client_id, '192.168.43.93')
+    
 
 def mqtt_sub_cb(topic, msg):
     msgDecoded = msg.decode("utf-8")
@@ -29,10 +30,9 @@ def mqtt_sub_cb(topic, msg):
             client.publish("ESP_LOG", mess)
         client.publish("ESP_LOG","testttt")
 #         print(mySensors.config)
-
-client.set_callback(mqtt_sub_cb)
-    
 try:
+    client = MQTTClient(client_id, '10.10.10.1')
+    client.set_callback(mqtt_sub_cb)
     client.connect()
     client.subscribe('fromPiToEsp')
     utime.sleep(0.25)
@@ -45,11 +45,11 @@ except Exception as e:
 async def call_sensors():
     while True:
         try:
+            mySensors.check_wifi()
             mySensors.flashLed()       
             mySensors.getTemp()
             mySensors.getCurrent()
             mySensors.getPressure()
-            mySensors.checkWifi()
             mySensors.getVoltage()
         except Exception as e:
             print('Call Sensors routine error =',e)
@@ -66,6 +66,7 @@ async def fast_loop():
     while True:
         try:
             res = await sreader.readline()
+#             print(res)
             res = res.decode("ASCII").rstrip()        
             values = res.split("\t")
             if values[0] == 'V':                   

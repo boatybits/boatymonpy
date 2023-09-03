@@ -18,6 +18,7 @@ class sensors:
 
     __led = Pin(2, Pin.OUT)      #internal led is on pin 2
     check_wifi_counter = 0
+    wifi_connect_isRunning = False
     sta_if = network.WLAN(network.STA_IF)
     current_sensors = {}
     onewirePin = machine.Pin(15)
@@ -28,41 +29,52 @@ class sensors:
     def __init__(self):
         self.config = config
         self.inhibit = False
-        self.check_wifi()
         self.load_i2c()
         self.load_INA()
         self.load_BME()
         self.load_ds18b20()
         self.load_ads1115()
         self.dbp('new sensors instance created, off we go')
-        #self.check_wifi()
+        self.connectWifi()
  
     def dbp(self, message):
         if config["debugPrint"]:
             print(message)
 
-    def connect_to_wifi(self):
+    def connectWifi(self):
+        self.wifi_connect_isRunning = True
         self.sta_if.active(True)
-        self.sta_if.ifconfig(('10.10.10.160', '255.255.255.0', '10.10.10.1', '10.10.10.1'))
-        self.sta_if.connect(config["ssid"], config["password"])
-        while not self.sta_if.isconnected():
-            print("Connecting to network...")
-            utime.sleep(1)
-
-    def check_wifi(self):
-        self.sta_if.active(True)
-        #print("ssid", config["ssid"])
-        if  self.sta_if.isconnected():
-            print('****CONNECTED!! network config:', self.sta_if.ifconfig())
-            return
-        networks = self.sta_if.scan()
-        for network in networks:
-            print("networks:", network)
-            if network[0].decode() == config["ssid"]:
-                self.connect_to_wifi()
+        try:
+            x = self.sta_if.scan()
+            if x is None:
+                self.wifi_connect_isRunning = False
                 return
-        print("Network not found")
-      
+            print("\n\nwifi networks found - ", x)
+        except Exception as e:
+            print('No networks found, error =',e)
+            self.wifi_connect_isRunning = False
+            return
+        if not self.sta_if.isconnected():
+            self.dbp('\n\n*****connecting to network...')            
+            try:
+                self.sta_if.ifconfig((config["IP_Address"], '255.255.255.0', '10.10.10.1', '10.10.10.1'))
+                self.sta_if.connect(config["ssid"], config["password"])
+            except Exception as e:
+                message = ('connect wifi failure, error =',e); self.dbp(message)
+                pass               
+            counter = 0
+            while not self.sta_if.isconnected():
+                utime.sleep(0.25)
+                print("\r>", counter, end = '')      #print counter in same place each iteration
+                counter += 1
+                self.flashLed()               
+                if counter > 10:
+                    machine.reset()
+                    break
+                pass
+        message = ('****CONNECTED!! network config:', self.sta_if.ifconfig()); self.dbp(message)
+        self.wifi_connect_isRunning = False
+
     def load_i2c(self):
         self.i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) 
         self.dbp('Scanning i2c bus...')
@@ -186,7 +198,16 @@ class sensors:
     def flashLed(self):
         self.__led.value(not self.__led.value())
 
-
+    def checkWifi(self):
+        if not self.sta_if.isconnected() and self.check_wifi_counter>6 and self.wifi_connect_isRunning == False:
+            for i in range(1,10):
+                self.flashLed()
+                utime.sleep(0.25)
+            self.check_wifi_counter = 0
+            self.connectWifi()
+            return
+        self.check_wifi_counter += 1
+        return
 
     def insertIntoSigKdata(self, path, value):
 #         https://wiki.python.org/moin/UdpCommunication
