@@ -134,7 +134,7 @@ class INA219:
         self._gain = None
         self._auto_gain_enabled = False
 
-    def configure(self, voltage_range=RANGE_32V, gain=GAIN_8_320MV,
+    def configure(self, voltage_range=RANGE_16V, gain=GAIN_2_80MV,
                   bus_adc=ADC_12BIT, shunt_adc=ADC_12BIT):
         """Configure and calibrate how the INA219 will take measurements.
 
