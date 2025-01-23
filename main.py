@@ -10,13 +10,13 @@ from umqtt.simple import MQTTClient
 import ubinascii
 from machine import UART
 
-uart = UART(1, tx=12, rx=14, timeout=50)
-uart.init(baudrate=19200,bits=8,parity=None)
+# uart = UART(1, tx=12, rx=14, timeout=50)
+# uart.init(baudrate=19200,bits=8,parity=None)
 # machine.UART(uart_num, tx=pin, rx=pin, stop=1, invert=UART.INV_TX | UART.INV_RX)
 
 loop = asyncio.get_event_loop() 
 mySensors = boatymon.sensors()
-utime.sleep(20)
+utime.sleep(2)
 client_id = ubinascii.hexlify(machine.unique_id())
     
 
@@ -30,35 +30,35 @@ def mqtt_sub_cb(topic, msg):
             client.publish("ESP_LOG", mess)
         client.publish("ESP_LOG","testttt")
 #         print(mySensors.config)
-try:
-    client = MQTTClient(client_id, '10.10.10.1')
-    client.set_callback(mqtt_sub_cb)
-    client.connect()
-    client.subscribe('fromPiToEsp')
-    utime.sleep(0.25)
-    client.publish("ESP_LOG","client connected and subscribed, MQTT callback set")
-    print('       client connected and subscribed, MQTT callback set')
-except Exception as e:
-    print("mqtt connect error",e)
-    pass
+# try:
+#     client = MQTTClient(client_id, '10.10.10.1')
+#     client.set_callback(mqtt_sub_cb)
+#     client.connect()
+#     client.subscribe('fromPiToEsp')
+#     utime.sleep(0.25)
+#     client.publish("ESP_LOG","client connected and subscribed, MQTT callback set")
+#     print('       client connected and subscribed, MQTT callback set')
+# except Exception as e:
+#     print("mqtt connect error",e)
+#     pass
 
 async def call_sensors():
     while True:
         try:
-            mySensors.check_wifi()
+#             mySensors.check_wifi()
             mySensors.flashLed()       
-            mySensors.getTemp()
-            mySensors.getCurrent()
-            mySensors.getPressure()
+#             mySensors.getTemp()
+#             mySensors.getCurrent()
+#             mySensors.getPressure()
             mySensors.getVoltage()
         except Exception as e:
             print('Call Sensors routine error =',e)
             pass
-        try:    
-            client.check_msg()    
-        except Exception as e:
-            print('MQTT error =',e)
-            pass
+#         try:    
+#             client.check_msg()    
+#         except Exception as e:
+#             print('MQTT error =',e)
+#             pass
         await asyncio.sleep(1)
 
 async def fast_loop():
@@ -86,6 +86,6 @@ async def fast_loop():
             pass
 
 loop.create_task(call_sensors())
-loop.create_task(fast_loop())
+# loop.create_task(fast_loop())
 
 loop.run_forever()

@@ -27,7 +27,9 @@ class sensors:
 #////////////////// INIT /// /////////////////////////
     def __init__(self):
         self.config = config
+        print("self.config = ", self.config)
         self.inhibit = False
+        self.sta_if.active(False)
         self.check_wifi()
         self.load_i2c()
         self.load_INA()
@@ -43,11 +45,23 @@ class sensors:
 
     def connect_to_wifi(self):
         self.sta_if.active(True)
-        self.sta_if.ifconfig(('10.10.10.160', '255.255.255.0', '10.10.10.1', '10.10.10.1'))
+        self.sta_if.ifconfig(('10.42.0.160', '255.255.255.0', '10.42.0.1', '10.42.0.1'))
         self.sta_if.connect(config["ssid"], config["password"])
         while not self.sta_if.isconnected():
             print("Connecting to network...")
+            networks = self.sta_if.scan()
+            check = False
+            for network in networks:
+                print("networks:", network)
+                if network[0].decode() == config["ssid"]:
+                    check = True
+                    break
+            if check == False:
+                return
+                    
+            
             utime.sleep(1)
+        print("network...", self.sta_if.ifconfig())
 
     def check_wifi(self):
         self.sta_if.active(True)
@@ -62,6 +76,7 @@ class sensors:
                 self.connect_to_wifi()
                 return
         print("Network not found")
+        return
       
     def load_i2c(self):
         self.i2c = I2C(scl=Pin(22), sda=Pin(21), freq=10000) 
@@ -78,7 +93,7 @@ class sensors:
         for i in config["ina"]:            
             if config["ina"][i]["enabled"]:
                 try:
-                    SHUNT_OHMS = 0.1     #config["ina"][ina]["shunt_Ohms"]
+                    SHUNT_OHMS = 0.2     #config["ina"][ina]["shunt_Ohms"]
                     self.current_sensors[i] = INA219(SHUNT_OHMS, self.i2c)
                     message = '\n****INA219 instance created', i,  self.current_sensors[i]; self.dbp(message)
                 except Exception as e:
@@ -100,19 +115,19 @@ class sensors:
                 
     def load_ads1115(self):
         try:
-            addr = 0x4a
+            addr = 0x48
             gain = 0
             self.ads1115A = ads1x15.ADS1115(self.i2c, addr, gain)
             print("\nADS1115A started")
         except Exception as e:
             print('ADS1115A start failed, possibly not connected. Error=',e)
-        try:
-            addr = 0x48
-            gain = 0
-            self.ads1115B = ads1x15.ADS1115(self.i2c, addr, gain)
-            print("ADS1115B started\n")
-        except Exception as e:
-            print('ADS1115B start failed, possibly not connected. Error=',e)
+#         try:
+#             addr = 0x48
+#             gain = 0
+#             self.ads1115B = ads1x15.ADS1115(self.i2c, addr, gain)
+#             print("ADS1115B started\n")
+#         except Exception as e:
+#             print('ADS1115B start failed, possibly not connected. Error=',e)
 
     def load_ds18b20(self):
         if config["ds18b20"]["enabled"]:
@@ -191,7 +206,7 @@ class sensors:
     def insertIntoSigKdata(self, path, value):
 #         https://wiki.python.org/moin/UdpCommunication
         try:
-            UDP_IP = "10.10.10.1"
+            UDP_IP = "10.42.0.1"
             UDP_PORT = 10118
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             _sigKdata = {"updates": [{"values":[]}]}
@@ -220,9 +235,9 @@ class sensors:
                     calibration = 6.12
                 elif i == 3:
                     calibration = 6.09
-                self.insertIntoSigKdata("electrical.ads1115-1." + str(i), voltage[i] * calibration)
+#                 self.insertIntoSigKdata("electrical.ads1115-1." + str(i), voltage[i] * calibration)
                 calibration = 1
-#                 print("Voltage", i , "=", voltage[i]* calibration)
+                print("Voltage", i , "=", voltage[i]* calibration)
             except Exception as e:
                 print("ADS1 error", e)
                 pass
