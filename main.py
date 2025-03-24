@@ -89,7 +89,7 @@ async def periodic_wifi_check(wifi_manager, interval):
     while True:
         await wifi_manager.check_wifi_connection()
         await asyncio.sleep(interval)
-        
+
 async def main():
     """Main function to run the WiFi connection checker."""
     print("Starting WiFi connection checker")
@@ -104,7 +104,6 @@ async def main():
         print("Main loop is running", config.LOOP_INTERVAL)
         # Create and await the led_blink task within the loop
         on_time, off_time = 1, 0.25
-        repeats = int (config.LOOP_INTERVAL / (on_time + off_time))
         led_blink_task = asyncio.create_task(led_controller.start_blinking(on_time, off_time, 0))
         timer_loop_task = asyncio.create_task(timer_loop())
         await asyncio.gather(led_blink_task, timer_loop_task)
