@@ -1,11 +1,12 @@
 # config.py
+NETWORK_TIMEOUT = 30  # Timeout for WiFi connection attempts (seconds)
 WIFI_SSID = "openplotter"  # WiFi SSID
 WIFI_PASSWORD = "12345678"  # WiFi password
-CHECK_INTERVAL = 10  # seconds
+LOOP_INTERVAL = 5  # seconds
 NETWORK_SLEEP = 10  # seconds
 MAX_CONNECTION_ATTEMPTS = 3
 BME280_STATE = True
 IP_ADDRESS = "10.42.0.170"
 SUBNET_MASK = "255.255.255.0"
 GATEWAY = "10.42.0.1"
-DNS_SERVER = "8.8.8.8"
+DNS_SERVER = "10.42.0.1"
