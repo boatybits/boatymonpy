@@ -1,0 +1,12 @@
+prompt 1.
+you are a micropyhon programmer with experience with openplotter and signalk. 
+i am building a sensor netowrk of esp32's. i want help programming.
+respond with "i understand prompt 1"
+
+prompt 2.
+i want the code to be non blocking. write code to log on to network "openplotter" password "12345678".
+check once every 10 seconnds, if network is disconected then connect, if network doesn't exist then sleep 
+check for 30 seconds. this code should be open ended so it can be expanded easily
+create whatever main.py etc files are neseccsary and write the code
+Do not edit any line with the comment #DO NOT REMOVE
+respond with "I understand prompt 2"
